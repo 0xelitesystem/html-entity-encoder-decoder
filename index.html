@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML Entity Encoder and Decoder</title>
+<style>
+:root {
+  --bg: #fafaf6;
+  --surface: #ffffff;
+  --ink: #0a1d1e;
+  --ink-soft: #2c4a4c;
+  --rule: #c8d4d3;
+  --teal: #0f5c60;
+  --teal-deep: #0a4548;
+  --gold: #b07d2a;
+  --gold-deep: #8a611f;
+  --ok: #1a5c2e;
+  --warn: #8a5a00;
+  --err: #8b1a1a;
+  --code-bg: #f0ebe1;
+}
+[data-theme="dark"] {
+  --bg: #0c1c1d;
+  --surface: #14292a;
+  --ink: #e8ebe6;
+  --ink-soft: #b0c0bd;
+  --rule: #2a4042;
+  --teal: #4ab4ba;
+  --teal-deep: #6dc8ce;
+  --gold: #d4a155;
+  --gold-deep: #e6b876;
+  --ok: #6dd380;
+  --warn: #d4a155;
+  --err: #e88080;
+  --code-bg: #0a1718;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: ui-serif, Georgia, "Times New Roman", serif;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  line-height: 1.55;
+}
+.wrap { max-width: 1100px; margin: 0 auto; }
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 2px solid var(--teal);
+  padding-bottom: 1rem;
+  margin-bottom: 2rem;
+}
+h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--teal);
+}
+.tag {
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.75rem;
+  color: var(--gold-deep);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+[data-theme="dark"] .tag { color: var(--gold); }
+.theme-btn {
+  background: transparent;
+  border: 1px solid var(--rule);
+  color: var(--ink-soft);
+  padding: 0.4rem 0.85rem;
+  font-size: 0.8rem;
+  font-family: inherit;
+  cursor: pointer;
+  border-radius: 2px;
+}
+.theme-btn:hover { border-color: var(--teal); color: var(--teal); }
+.lede {
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+  margin-bottom: 1.75rem;
+  max-width: 64ch;
+}
+.mode-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+.mode-row button {
+  font-family: inherit;
+  font-size: 0.85rem;
+  padding: 0.55rem 1.2rem;
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  border-radius: 2px;
+}
+.mode-row button:hover { border-color: var(--teal); }
+.mode-row button.active {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: var(--surface);
+  font-weight: 600;
+}
+[data-theme="dark"] .mode-row button.active { color: var(--bg); }
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+  border-radius: 3px;
+}
+label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+  display: block;
+  margin-bottom: 0.5rem;
+}
+textarea {
+  width: 100%;
+  min-height: 130px;
+  background: var(--code-bg);
+  border: 1px solid var(--rule);
+  color: var(--ink);
+  padding: 0.85rem;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  resize: vertical;
+  border-radius: 2px;
+}
+textarea:focus { outline: 2px solid var(--teal); outline-offset: 1px; }
+.opts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  margin: 0.85rem 0 0.25rem;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+.opt { display: flex; align-items: center; gap: 0.4rem; cursor: pointer; }
+.opt input { cursor: pointer; }
+.out-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+.out-head label { margin-bottom: 0; }
+button.copy {
+  font-family: inherit;
+  font-size: 0.78rem;
+  padding: 0.35rem 0.85rem;
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  border-radius: 2px;
+}
+button.copy:hover { border-color: var(--teal); color: var(--teal); }
+.privacy-note {
+  font-size: 0.78rem;
+  color: var(--gold-deep);
+  margin-top: 0.85rem;
+}
+[data-theme="dark"] .privacy-note { color: var(--gold); }
+.swap-row { display: flex; justify-content: center; margin: -0.4rem 0 0.9rem; }
+.swap-row button {
+  font-family: inherit;
+  font-size: 0.8rem;
+  padding: 0.4rem 1rem;
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  color: var(--ink-soft);
+  cursor: pointer;
+  border-radius: 2px;
+}
+.swap-row button:hover { border-color: var(--teal); color: var(--teal); }
+footer {
+  margin-top: 3rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--rule);
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+}
+footer a { color: var(--teal); text-decoration: none; }
+footer a:hover { text-decoration: underline; }
+.hint {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  font-style: italic;
+  margin-top: 0.4rem;
+}
+@media (max-width: 640px) {
+  body { padding: 1rem 0.75rem; }
+  h1 { font-size: 1.4rem; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div>
+    <h1>HTML Entity Encoder and Decoder</h1>
+    <div class="tag">Encode and decode in your browser</div>
+  </div>
+  <button class="theme-btn" id="theme-toggle" type="button">Dark</button>
+</header>
+
+<p class="lede">Encode text to HTML entities or decode entities back to plain text. Handles named entities and numeric entities (decimal and hex). Updates live as you type. Nothing leaves this page.</p>
+
+<div class="mode-row">
+  <button id="mode-encode" class="active" type="button">Encode</button>
+  <button id="mode-decode" type="button">Decode</button>
+</div>
+
+<div class="panel">
+  <label for="input">Input</label>
+  <textarea id="input" placeholder="Type or paste text here" spellcheck="false" autocapitalize="off" autocorrect="off"></textarea>
+  <div class="opts" id="encode-opts">
+    <label class="opt"><input type="radio" name="enc-mode" value="basic" checked> Encode only the dangerous 5 (<code>&amp; &lt; &gt; " '</code>)</label>
+    <label class="opt"><input type="radio" name="enc-mode" value="all"> Encode all non-ASCII to numeric entities</label>
+  </div>
+  <div class="hint" id="decode-hint" style="display:none;">Decodes named entities (<code>&amp;amp;</code>), decimal numeric (<code>&amp;#169;</code>), and hex numeric (<code>&amp;#xA9;</code>).</div>
+</div>
+
+<div class="swap-row">
+  <button id="swap-btn" type="button">Move output to input</button>
+</div>
+
+<div class="panel">
+  <div class="out-head">
+    <label for="output">Output</label>
+    <button class="copy" id="copy-btn" type="button">Copy</button>
+  </div>
+  <textarea id="output" readonly placeholder="Result appears here" spellcheck="false"></textarea>
+  <div class="privacy-note">All encoding and decoding happens locally. Your text is never sent to any server.</div>
+</div>
+
+<footer>
+  <div>HTML Entity Encoder and Decoder. Open source, MIT licensed. <a href="https://github.com/0xelitesystem/html-entity-encoder-decoder" target="_blank" rel="noopener">View source</a>.</div>
+  <div>Named and numeric entities supported.</div>
+</footer>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+
+const themeBtn = $("theme-toggle");
+function setTheme(t) {
+  document.documentElement.setAttribute("data-theme", t);
+  themeBtn.textContent = t === "dark" ? "Light" : "Dark";
+}
+themeBtn.addEventListener("click", () => {
+  const cur = document.documentElement.getAttribute("data-theme") || "light";
+  setTheme(cur === "dark" ? "light" : "dark");
+});
+
+let mode = "encode";
+
+// The dangerous five. Apostrophe uses numeric &#39; since &apos; is not
+// defined in HTML4 and some older parsers do not recognize it.
+const BASIC_MAP = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&#39;",
+};
+
+function encodeBasic(text) {
+  let out = "";
+  for (const ch of text) {
+    out += BASIC_MAP[ch] || ch;
+  }
+  return out;
+}
+
+// Encode the dangerous five plus every non-ASCII code point as a numeric
+// entity. Iterating with for..of yields full code points, so characters
+// outside the BMP (emoji, etc.) are encoded by their real code point
+// rather than as broken surrogate halves.
+function encodeAll(text) {
+  let out = "";
+  for (const ch of text) {
+    if (BASIC_MAP[ch]) { out += BASIC_MAP[ch]; continue; }
+    const cp = ch.codePointAt(0);
+    if (cp > 127) out += "&#" + cp + ";";
+    else out += ch;
+  }
+  return out;
+}
+
+// Minimal named-entity table covering the common HTML named references.
+// Numeric entities cover everything else, so this stays small on purpose.
+const NAMED = {
+  amp: "&", lt: "<", gt: ">", quot: '"', apos: "'",
+  nbsp: " ", copy: "©", reg: "®", trade: "™",
+  hellip: "…", mdash: String.fromCodePoint(0x2014), ndash: String.fromCodePoint(0x2013),
+  ldquo: "“", rdquo: "”", lsquo: "‘", rsquo: "’",
+  laquo: "«", raquo: "»", deg: "°", plusmn: "±",
+  times: "×", divide: "÷", euro: "€", pound: "£",
+  cent: "¢", yen: "¥", sect: "§", para: "¶",
+  middot: "·", bull: "•", dagger: "†", Dagger: "‡",
+  frac12: "½", frac14: "¼", frac34: "¾",
+  alpha: "α", beta: "β", gamma: "γ", delta: "δ",
+  pi: "π", sigma: "σ", omega: "ω", micro: "µ",
+  infin: "∞", ne: "≠", le: "≤", ge: "≥",
+  larr: "←", uarr: "↑", rarr: "→", darr: "↓",
+  harr: "↔", spades: "♠", clubs: "♣",
+  hearts: "♥", diams: "♦", check: "✓", cross: "✗",
+};
+
+function decodeEntities(text) {
+  // Match named (&foo;), decimal (&#123;), or hex (&#xAB; / &#XAB;) entities.
+  return text.replace(/&(#x[0-9a-fA-F]+|#\d+|[a-zA-Z][a-zA-Z0-9]*);/g, (whole, body) => {
+    if (body[0] === "#") {
+      let cp;
+      if (body[1] === "x" || body[1] === "X") {
+        cp = parseInt(body.slice(2), 16);
+      } else {
+        cp = parseInt(body.slice(1), 10);
+      }
+      if (!isFinite(cp) || cp < 0 || cp > 0x10FFFF) return whole;
+      try {
+        return String.fromCodePoint(cp);
+      } catch (e) {
+        return whole;
+      }
+    }
+    // Named: only substitute if we recognize it; otherwise leave as written.
+    if (Object.prototype.hasOwnProperty.call(NAMED, body)) return NAMED[body];
+    return whole;
+  });
+}
+
+function run() {
+  const input = $("input").value;
+  let result;
+  if (mode === "encode") {
+    const encMode = document.querySelector('input[name="enc-mode"]:checked').value;
+    result = encMode === "all" ? encodeAll(input) : encodeBasic(input);
+  } else {
+    result = decodeEntities(input);
+  }
+  $("output").value = result;
+}
+
+function setMode(m) {
+  mode = m;
+  $("mode-encode").classList.toggle("active", m === "encode");
+  $("mode-decode").classList.toggle("active", m === "decode");
+  $("encode-opts").style.display = m === "encode" ? "flex" : "none";
+  $("decode-hint").style.display = m === "decode" ? "block" : "none";
+  run();
+}
+
+$("mode-encode").addEventListener("click", () => setMode("encode"));
+$("mode-decode").addEventListener("click", () => setMode("decode"));
+$("input").addEventListener("input", run);
+document.querySelectorAll('input[name="enc-mode"]').forEach((r) => r.addEventListener("change", run));
+
+$("swap-btn").addEventListener("click", () => {
+  $("input").value = $("output").value;
+  run();
+});
+
+$("copy-btn").addEventListener("click", async () => {
+  const text = $("output").value;
+  if (!text) return;
+  try {
+    await navigator.clipboard.writeText(text);
+    const btn = $("copy-btn");
+    const old = btn.textContent;
+    btn.textContent = "Copied";
+    setTimeout(() => { btn.textContent = old; }, 1200);
+  } catch (e) {
+    // Fallback for browsers without async clipboard.
+    $("output").select();
+    document.execCommand("copy");
+  }
+});
+
+setTheme("light");
+setMode("encode");
+</script>
+</body>
+</html>
